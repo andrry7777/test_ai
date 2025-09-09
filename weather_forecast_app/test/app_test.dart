@@ -24,6 +24,7 @@ void main() {
         child: const App(),
       ),
     );
-    expect(find.text('Weather'), findsOneWidget);
+    await tester.pumpAndSettle();
+    expect(find.text('WEATHER'), findsOneWidget);
   });
 }
