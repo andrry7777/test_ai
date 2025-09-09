@@ -10,7 +10,7 @@ import 'package:weather_forecast_app/features/weather/domain/repositories/weathe
 class FakeWeatherRepository implements WeatherRepository {
   @override
   Future<CurrentWeather> getCurrentWeather(Location location) async {
-    return const CurrentWeather(temperature: 0);
+    return const CurrentWeather(temperature: 0, hourly: [], daily: []);
   }
 }
 
