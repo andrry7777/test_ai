@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import 'view_model/home_view_model.dart';
 import '../domain/entities/location.dart';
+import '../domain/entities/current_weather.dart';
 
 class HomeScreen extends HookConsumerWidget {
   const HomeScreen({super.key});
@@ -69,9 +70,9 @@ class HomeScreen extends HookConsumerWidget {
                     const SizedBox(height: 8),
                     const Text('Sunny', style: TextStyle(fontSize: 20)),
                     const SizedBox(height: 32),
-                    _HourlyForecastCard(),
+                    _HourlyForecastCard(weather.hourly),
                     const SizedBox(height: 24),
-                    _DailyForecastCard(),
+                    _DailyForecastCard(weather.daily),
                   ],
                 ),
               ),
@@ -91,9 +92,18 @@ class HomeScreen extends HookConsumerWidget {
 }
 
 class _HourlyForecastCard extends StatelessWidget {
+  final List<HourlyForecast> forecasts;
+
+  const _HourlyForecastCard(this.forecasts);
+
   @override
   Widget build(BuildContext context) {
-    Widget buildItem(String time, IconData icon, String temp) {
+    Widget buildItem(HourlyForecast forecast) {
+      final time = DateFormat.Hm().format(forecast.time);
+      final icon = (forecast.time.hour >= 18 || forecast.time.hour < 6)
+          ? Icons.nightlight_round
+          : Icons.wb_sunny;
+      final temp = '${forecast.temperature.round()}°';
       return Column(
         children: [
           Text(time),
@@ -116,12 +126,7 @@ class _HourlyForecastCard extends StatelessWidget {
             const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                buildItem('12:00', Icons.wb_sunny, '25°'),
-                buildItem('15:00', Icons.wb_sunny, '26°'),
-                buildItem('18:00', Icons.nightlight_round, '22°'),
-                buildItem('21:00', Icons.nightlight_round, '20°'),
-              ],
+              children: forecasts.map(buildItem).toList(),
             ),
           ],
         ),
@@ -131,16 +136,23 @@ class _HourlyForecastCard extends StatelessWidget {
 }
 
 class _DailyForecastCard extends StatelessWidget {
+  final List<DailyForecast> forecasts;
+
+  const _DailyForecastCard(this.forecasts);
+
   @override
   Widget build(BuildContext context) {
-    Widget buildRow(String day, IconData icon, String range) {
+    Widget buildRow(DailyForecast forecast) {
+      final day = DateFormat.E().format(forecast.date);
+      final range =
+          '${forecast.maxTemperature.round()}/${forecast.minTemperature.round()}°';
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(day),
-            Icon(icon, color: Colors.orange),
+            const Icon(Icons.wb_sunny, color: Colors.orange),
             Text(range),
           ],
         ),
@@ -156,9 +168,7 @@ class _DailyForecastCard extends StatelessWidget {
           children: [
             const Text('DAILY FORECAST'),
             const SizedBox(height: 8),
-            buildRow('Wed', Icons.wb_sunny, '27/18°'),
-            buildRow('Thu', Icons.wb_sunny, '22/16°'),
-            buildRow('Sat', Icons.beach_access, '23/15°'),
+            ...forecasts.map(buildRow),
           ],
         ),
       ),

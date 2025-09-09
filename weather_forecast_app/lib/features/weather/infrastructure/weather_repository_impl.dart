@@ -18,6 +18,9 @@ class WeatherRepositoryImpl implements WeatherRepository {
         'latitude': location.lat,
         'longitude': location.lon,
         'current_weather': true,
+        'hourly': 'temperature_2m',
+        'daily': 'temperature_2m_max,temperature_2m_min',
+        'timezone': 'auto',
       },
     );
     final data = response.data;
@@ -26,6 +29,44 @@ class WeatherRepositoryImpl implements WeatherRepository {
       throw NetworkException('No current weather data');
     }
     final temperature = (current['temperature'] as num).toDouble();
-    return CurrentWeather(temperature: temperature);
+
+    final hourlyData = data['hourly'] as Map<String, dynamic>?;
+    final dailyData = data['daily'] as Map<String, dynamic>?;
+
+    final List<HourlyForecast> hourly = [];
+    if (hourlyData != null) {
+      final times = (hourlyData['time'] as List).cast<String>();
+      final temps = (hourlyData['temperature_2m'] as List).cast<num>();
+      for (var i = 0; i < 4 && i < times.length; i++) {
+        hourly.add(
+          HourlyForecast(
+            time: DateTime.parse(times[i]),
+            temperature: temps[i].toDouble(),
+          ),
+        );
+      }
+    }
+
+    final List<DailyForecast> daily = [];
+    if (dailyData != null) {
+      final times = (dailyData['time'] as List).cast<String>();
+      final maxTemps = (dailyData['temperature_2m_max'] as List).cast<num>();
+      final minTemps = (dailyData['temperature_2m_min'] as List).cast<num>();
+      for (var i = 0; i < 3 && i < times.length; i++) {
+        daily.add(
+          DailyForecast(
+            date: DateTime.parse(times[i]),
+            maxTemperature: maxTemps[i].toDouble(),
+            minTemperature: minTemps[i].toDouble(),
+          ),
+        );
+      }
+    }
+
+    return CurrentWeather(
+      temperature: temperature,
+      hourly: hourly,
+      daily: daily,
+    );
   }
 }
